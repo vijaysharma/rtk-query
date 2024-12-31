@@ -1,0 +1,56 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main # Or your main branch name
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x] # Specify Node.js versions
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json" # Cache node_modules
+
+      - name: Install dependencies (Client)
+        working-directory: ./client # Navigate to client directory
+        run: npm ci
+
+      - name: Build Client
+        working-directory: ./client
+        run: npm run build
+
+      - name: Install dependencies (API)
+        working-directory: ./api # Navigate to api directory
+        run: npm ci
+
+      - name: Build API (If applicable - e.g., TypeScript)
+        working-directory: ./api
+        run: npm run build # Or tsc if using typescript
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            client/build
+            api/dist # Or api folder if no build process
+
+      - name: Deploy to Vercel (Optional - if you want automatic deployments)
+        if: github.ref == 'refs/heads/main' # Only deploy on pushes to main
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }} # Store your Vercel token as a secret
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }} # Optional
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }} # Optional
