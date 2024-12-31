@@ -73,12 +73,17 @@ const Posts = () => {
     <div>
       {isLoading && <div>Loading...</div>}
       {errorMessage && <div>Error: {errorMessage}</div>}
-
-      <input type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-      <br />
-      <textarea value={content} onChange={(e) => setContent(e.target.value)} />
-      <br />
-      <button onClick={handleAddPost}>Add Post</button>
+      <div style={{ marginBottom: "1rem", padding: "1rem", width: "50%", border: "1px solid #ccc" }}>
+        <label htmlFor="title">Title: </label>
+        <input id="title" type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <br />
+        <br />
+        <label htmlFor="content">Content: </label>
+        <textarea id="content" value={content} onChange={(e) => setContent(e.target.value)} />
+        <br />
+        <br />
+        <button onClick={handleAddPost}>Add Post</button>
+      </div>
       {addPostErrorMessage && <div>Error: {addPostErrorMessage}</div>}
       <hr />
       {posts?.map((post) => (
