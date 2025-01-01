@@ -6,8 +6,8 @@ import { useLoginMutation, useRegisterMutation } from "../apiSlice/postsApiSlice
 const Login = () => {
   const [username, setUsername] = useState("vistyle");
   const [password, setPassword] = useState("Mini@1985");
-  const [register, { error: regError }] = useRegisterMutation();
-  const [login, { error: loginError }] = useLoginMutation();
+  const [register] = useRegisterMutation();
+  const [login] = useLoginMutation();
   const dispatch = useDispatch();
 
   const handleRegister = async () => {

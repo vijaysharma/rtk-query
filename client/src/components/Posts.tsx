@@ -3,8 +3,6 @@ import { useGetPostsQuery, useAddPostMutation, useDeletePostMutation } from "../
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
 
-import Login from "./Login";
-
 function isFetchBaseQueryError(error: any): error is FetchBaseQueryError {
   return error && typeof error.status === "number";
 }
@@ -25,7 +23,7 @@ function getErrorMessage(error: FetchBaseQueryError | SerializedError | undefine
 }
 
 const Posts = () => {
-  const { data: posts, isLoading, error, refetch } = useGetPostsQuery();
+  const { data: posts, isLoading, error } = useGetPostsQuery();
   const [addPost, { error: addPostError }] = useAddPostMutation();
   const [deletePost] = useDeletePostMutation();
   const [title, setTitle] = useState("new post");
