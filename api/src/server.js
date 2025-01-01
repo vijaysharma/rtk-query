@@ -20,6 +20,11 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+// Test route
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working" });
+});
+
 // Middleware to verify JWT token
 function authenticateToken(req, res, next) {
   const token = req.headers["authorization"];
