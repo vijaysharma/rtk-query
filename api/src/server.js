@@ -26,7 +26,6 @@ function authenticateToken(req, res, next) {
   if (!token) return res.sendStatus(401);
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    console.log(token);
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
