@@ -22,7 +22,10 @@ app.use(express.json());
 
 // Test route
 app.get("/api/test", (req, res) => {
-  res.json({ message: "API is working" });
+  res.json({ message: "API is /test working" });
+});
+app.get("/api", (req, res) => {
+  res.json({ message: "API at / is working" });
 });
 
 // Middleware to verify JWT token
