@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import { useState } from "react";
 import { useGetPostsQuery, useAddPostMutation, useDeletePostMutation } from "../apiSlice/postsApiSlice";
-import { FetchBaseQueryError, setupListeners } from "@reduxjs/toolkit/query";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
-import { useDispatch } from "react-redux";
+
+import Login from "./Login";
 
 function isFetchBaseQueryError(error: any): error is FetchBaseQueryError {
   return error && typeof error.status === "number";
@@ -27,8 +28,8 @@ const Posts = () => {
   const { data: posts, isLoading, error, refetch } = useGetPostsQuery();
   const [addPost, { error: addPostError }] = useAddPostMutation();
   const [deletePost] = useDeletePostMutation();
-  const [title, setTitle] = React.useState("new post");
-  const [content, setContent] = React.useState("add some content");
+  const [title, setTitle] = useState("new post");
+  const [content, setContent] = useState("add some content");
 
   let errorMessage = getErrorMessage(error);
   let addPostErrorMessage = getErrorMessage(addPostError);
@@ -49,25 +50,25 @@ const Posts = () => {
     try {
       await deletePost(id);
     } catch (err) {
-      console.error("Failed to delete post:", err);
+      console.error("Failed to delete post: ", err);
     }
   };
 
-  const dispatch = useDispatch();
-  // Setup listeners (just in case)
-  useEffect(() => {
-    setupListeners(dispatch);
-  }, [dispatch]);
+  // const dispatch = useDispatch();
+  // // Setup listeners (just in case)
+  // useEffect(() => {
+  //   setupListeners(dispatch);
+  // }, [dispatch]);
 
-  useEffect(() => {
-    const handleFocus = () => {
-      refetch(); // Force refetch on focus
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [refetch]);
+  // useEffect(() => {
+  //   const handleFocus = () => {
+  //     refetch(); // Force refetch on focus
+  //   };
+  //   window.addEventListener("focus", handleFocus);
+  //   return () => {
+  //     window.removeEventListener("focus", handleFocus);
+  //   };
+  // }, [refetch]);
 
   return (
     <div>

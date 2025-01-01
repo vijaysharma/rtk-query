@@ -2,10 +2,14 @@ import express from "express";
 import fs from "fs/promises";
 import path from "path";
 import cors from "cors";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const POSTS_FILE = path.join(__dirname, "data", "posts.json");
+const USERS_FILE = path.join(__dirname, "data", "users.json");
+const JWT_SECRET = process.env.JWT_SECRET; // Replace this with a secure secret
 
 // Middleware to enable CORS
 app.use(cors());
@@ -13,14 +17,26 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+// Middleware to verify JWT token
+function authenticateToken(req, res, next) {
+  const token = req.headers["authorization"];
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    console.log(token);
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
 // Helper function to read posts
 async function readPosts() {
   try {
     const data = await fs.readFile(POSTS_FILE, "utf8");
-    console.log("Read posts:", data); // Debug log
     return JSON.parse(data);
   } catch (error) {
-    console.error("Error reading posts:", error); // Debug log
+    console.error("Error reading posts:", error);
     return [];
   }
 }
@@ -30,21 +46,84 @@ async function writePosts(posts) {
   await fs.writeFile(POSTS_FILE, JSON.stringify(posts, null, 2));
 }
 
-// Get all posts
-app.get("/api/posts", async (req, res) => {
+// Helper function to read users
+async function readUsers() {
   try {
-    console.log("GET /api/posts called"); // Debug log
+    const data = await fs.readFile(USERS_FILE, "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error reading users:", error);
+    return [];
+  }
+}
+
+// Helper function to write users
+async function writeUsers(users) {
+  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+// Register a new user
+app.post("/api/register", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
+    }
+
+    const users = await readUsers();
+    const existingUser = users.find((user) => user.username === username);
+
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = {
+      id: Date.now().toString(),
+      username,
+      password: hashedPassword,
+    };
+
+    users.push(newUser);
+    await writeUsers(users);
+
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to register user" });
+  }
+});
+
+// Login user
+app.post("/api/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const users = await readUsers();
+    const user = users.find((user) => user.username === username);
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+
+    // const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET);
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { algorithm: "HS256", expiresIn: "1h" });
+    res.json({ token });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to login" });
+  }
+});
+
+// Get all posts (protected)
+app.get("/api/posts", authenticateToken, async (req, res) => {
+  try {
     const posts = await readPosts();
-    console.log("Sending posts:", posts); // Debug log
     res.json(posts);
   } catch (error) {
-    console.error("Error in GET /api/posts:", error); // Debug log
     res.status(500).json({ error: "Failed to retrieve posts" });
   }
 });
 
-// Create a new post
-app.post("/api/posts", async (req, res) => {
+// Create a new post (protected)
+app.post("/api/posts", authenticateToken, async (req, res) => {
   try {
     const { title, content } = req.body;
     if (!title || !content) {
@@ -68,8 +147,8 @@ app.post("/api/posts", async (req, res) => {
   }
 });
 
-// Delete a post
-app.delete("/api/posts/:id", async (req, res) => {
+// Delete a post (protected)
+app.delete("/api/posts/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const posts = await readPosts();
@@ -94,5 +173,4 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log("Posts file location:", POSTS_FILE); // Debug log
 });
