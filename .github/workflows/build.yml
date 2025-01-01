@@ -55,18 +55,22 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: client-artifacts
-          path: client/dist
+          path: ./client/dist
 
       - name: Download API Artifacts
         uses: actions/download-artifact@v3
         with:
           name: api-artifacts
-          path: api/dist
+          path: ./api/dist
 
       - name: Deploy Client to Vercel
         if: github.ref == 'refs/heads/main' # Only deploy on pushes to main
-        run: npx vercel --prod --yes -t ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          cd client/dist
+          npx vercel --prod --yes -t ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }}
 
       - name: Deploy API to Vercel
         if: github.ref == 'refs/heads/main' # Only deploy on pushes to main
-        run: npx vercel --prod --yes -t ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} --prod
+        run: |
+          cd api/dist
+          npx vercel --prod --yes -t ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} --prod
