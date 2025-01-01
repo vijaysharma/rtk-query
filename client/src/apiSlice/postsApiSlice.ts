@@ -14,7 +14,7 @@ type User = {
 export const postsApi = createApi({
   reducerPath: "postsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:4000/api/",
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
       const state = getState() as RootState;
       const token = state.auth.token;

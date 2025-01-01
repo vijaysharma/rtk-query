@@ -4,6 +4,9 @@ import path from "path";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
